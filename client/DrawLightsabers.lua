@@ -106,11 +106,9 @@ function Lightsaber:DrawFunction()
 			0.88) -- Blade is roughly 1m long
 
 		if IsValid(hTable.entity) then -- if the ray hit something
-			--print("Hit!")
-			--print("hTable.entity.__type = " .. hTable.entity.__type)
-			--print("self.player = LocalPlayer " .. tostring(self.player == LocalPlayer))
+
 			if hTable.entity.__type == "Player" or hTable.entity.__type == "Vehicle" and self.player == LocalPlayer then -- you can't damage static objects, so do a check
-				--print("sending!")
+
 				Network:Send("LightsaberDamage", {entity = hTable.entity})
 			end
 		end
@@ -167,14 +165,6 @@ end
 
 function Lightsaber:SetPosition(newPos)
 	self.position = newPos
-end
-
-function Lightsaber:GetBone()
-	return self.bone
-end
-
-function Lightsaber:GetBone_s()
-	return self.bone_s
 end
 
 function Lightsaber:SetAngle(newAngle)

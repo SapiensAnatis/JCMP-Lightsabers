@@ -12,10 +12,9 @@ LightsaberFilenames = { -- Filenames excluding OBJ extension
 
 function PlayerJoin(args)
 	OBJLoader.Request({path = args.player:GetValue("Jedi")}, args.player, ConstructClass)
-	OBJLoader.Request({path = LocalPlayer:GetValue("Jedi") .. "_hilt"}, LocalPlayer, AddHiltToClass)
 end
 
-Network:Subscribe("LightsaberReady", PlayerJoin)
+Events:Subscribe("PlayerJoin", PlayerJoin)
 
 function init()
 
@@ -23,11 +22,11 @@ function init()
 	OBJLoader.Request({path = LocalPlayer:GetValue("Jedi") .. "_hilt"}, LocalPlayer, AddHiltToClass)
 
 	for p in Client:GetPlayers() do
-		--print("Making request for foreign player " .. p:GetName())
+
 		OBJLoader.Request({path = p:GetValue("Jedi")}, p, ConstructClass) -- Load in the model for every player
 		OBJLoader.Request({path = p:GetValue("Jedi") .. "_hilt"}, p, AddHiltToClass)
 	end
-	--print("Making request for Kylo Ren")
+
 
 	Events:Subscribe("Render", MoveLightsabers) -- Once everything is initialized, start fixing the lightsabers to bones
 	Events:Subscribe("NetworkObjectValueChange", DetectLightsaberChange)
@@ -36,10 +35,10 @@ end
 Events:Subscribe("ModulesLoad", init) -- Only allow this script to start runing when everything is finished loading, so that all the classes are in place
 
 function DetectLightsaberChange(args)
-	--print(tostring(args.object).."'s "..args.key.." was set to "..tostring(args.value))
+
 	if args.object.__type == "Player" or args.object.__type == "LocalPlayer" then -- If network value change was on a Player object...
 		if args.key == "Jedi" then -- If it concerns our script#
-			--print("----Requesting new models")
+
 			OBJLoader.Request({path = args.value}, args.object, ModifyClass) -- OBJLoader uses cached requests so not much cleanup is needed
 			OBJLoader.Request({path = args.value .. "_hilt"}, args.object, AddHiltToClass)
 		end
@@ -58,7 +57,8 @@ end
 
 
 function ConstructClass(model, name, p) -- Callback from OBJLoader
-	--print("Constructing lightsaber class for " .. p:GetName()) -- Debug
+
+	name = name:lower() -- just making sure
 
 	local lightsaberColor = LightsaberColors[name]
 
@@ -68,39 +68,34 @@ function ConstructClass(model, name, p) -- Callback from OBJLoader
 	-- Request hilt model
 	
 
-	--print("------------------------------------------------------------------------------------------------")
 end
 
 function AddHiltToClass(model, name, p)
 	local class = Lightsabers[p:GetId()] -- Lookup class
-	if class then
-		class:SetHilt(model)
-	end
+	class:SetHilt(model)
 end
 
 function MoveLightsabers()
 	for p in Client:GetPlayers() do
 
 		if Lightsabers[p:GetId()] then
-			local class = Lightsabers[p:GetId()]
 			
-			Lightsabers[p:GetId()]:SetPosition(p:GetBonePosition(class:GetBone())) -- Set to hand every frame
-			Lightsabers[p:GetId()]:SetAngle(p:GetBoneAngle(class:GetBone()))
+			Lightsabers[p:GetId()]:SetPosition(p:GetBonePosition("ragdoll_LeftHand")) -- Set to hand every frame
+			Lightsabers[p:GetId()]:SetAngle(p:GetBoneAngle("ragdoll_LeftHand"))
 
-			Lightsabers[p:GetId()]:SetPosition_s(p:GetBonePosition(class:GetBone())) -- Set to hip every frame
-			Lightsabers[p:GetId()]:SetAngle_s(p:GetBoneAngle(class:GetBone()))
+			Lightsabers[p:GetId()]:SetPosition_s(p:GetBonePosition("ragdoll_LeftUpLeg")) -- Set to hip every frame
+			Lightsabers[p:GetId()]:SetAngle_s(p:GetBoneAngle("ragdoll_LeftUpLeg"))
 
 		end
 	end
 
 	if Lightsabers[LocalPlayer:GetId()] then
-		local class = Lightsabers[LocalPlayer:GetId()]
 
-		class:SetPosition(LocalPlayer:GetBonePosition(class:GetBone()))
-		class:SetAngle(LocalPlayer:GetBoneAngle(class:GetBone())) -- Again, Client:GetPlayers() does not include LocalPlayer
+		Lightsabers[LocalPlayer:GetId()]:SetPosition(LocalPlayer:GetBonePosition("ragdoll_LeftHand"))
+		Lightsabers[LocalPlayer:GetId()]:SetAngle(LocalPlayer:GetBoneAngle("ragdoll_LeftHand")) -- Again, Client:GetPlayers() does not include LocalPlayer
 
-		class:SetPosition_s(LocalPlayer:GetBonePosition(class:GetBone_s()))
-		class:SetAngle_s(LocalPlayer:GetBoneAngle(class:GetBone()_s))
+		Lightsabers[LocalPlayer:GetId()]:SetPosition_s(LocalPlayer:GetBonePosition("ragdoll_LeftUpLeg"))
+		Lightsabers[LocalPlayer:GetId()]:SetAngle_s(LocalPlayer:GetBoneAngle("ragdoll_LeftUpLeg"))
 
 	end
 end
