@@ -6,7 +6,7 @@
 
 class("Lightsaber")
 
-function Lightsaber:__init(model, lightColor, modelname, player, bone, bone_s, position, position_s, angle, angle_s)
+function Lightsaber:__init(model, lightColor, modelname, player, hilt, bone, bone_s, position, position_s, angle, angle_s)
 	-- Debug: print("Initializing....")
 	-- Get properties from creation
 
@@ -16,6 +16,7 @@ function Lightsaber:__init(model, lightColor, modelname, player, bone, bone_s, p
 	self.light 		= ClientLight.Create({position = Vector3(0, 0, 0), color = Color.Black, multiplier = 3, radius = 3})
 	self.type 		= modelname
 	self.player 	= player
+	self.hilt 		= hilt
 
 	self.transform 	= Transform3()
 
@@ -151,10 +152,11 @@ end
 
 function Lightsaber:Remove()
 
-
-	self.light:SetColor(Color.Black) -- Precaution: if we can't fully quit, at least remove the invisible lights from everywhere
-	self.light:Remove()
-	self.light = nil
+	if self.light then
+		self.light:SetColor(Color.Black) -- Precaution: if we can't fully quit, at least remove the invisible lights from everywhere
+		self.light:Remove()
+		self.light = nil
+	end
 
 
 

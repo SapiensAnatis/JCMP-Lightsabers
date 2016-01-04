@@ -146,10 +146,6 @@ OBJLoader.Load = function(path)
 					local vert3 = ConvertWord(words[5])
 					table.insert(mesh.triangleData , {vert1 , vert2 , vert3 , currentColorIndex})
 				end
-				-- If there is a 6th word, then it's an n-gon, which...yeah, not happening.
-				if words[1000] then
-					return nil , "N-gons are not supported"
-				end
 			end
 		end 
 	end

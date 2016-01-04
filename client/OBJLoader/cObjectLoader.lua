@@ -23,9 +23,9 @@ OBJLoader.Request = function(args , player , extra1 , extra2)
 		type(args) ~= "table" or
 		type(args.path) ~= "string"
 	then
-		-- Debug: print(extra1)
-		-- Debug: print(type(args))
-		-- Debug: print(type(args.path))
+		print(extra1)
+		print(type(args))
+		print(type(args.path))
 		OBJLoader.Error("Error: bad parameters")
 
 	end
