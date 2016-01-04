@@ -10,21 +10,94 @@ LightsaberFilenames = { -- Filenames excluding OBJ extension
 	"luke skywalker",
 }
 
+ModelData = {
+
+}
+
+
+function CacheModelData(table, name)
+	ModelData[name] = table
+
+	if name == "luke skywalker_hilt" then
+		Events:Fire("ModelsReady")
+	end
+end
+
+function ModulesLoad()
+	OBJLoader.Request({path = "anakin"}, LocalPlayer, CacheModelData)
+	OBJLoader.Request({path = "anakin_hilt"}, LocalPlayer, CacheModelData)
+
+	OBJLoader.Request({path = "darth vader"}, LocalPlayer, CacheModelData)
+	OBJLoader.Request({path = "darth vader_hilt"}, LocalPlayer, CacheModelData)
+
+	OBJLoader.Request({path = "luke skywalker"}, LocalPlayer, CacheModelData)
+	OBJLoader.Request({path = "luke skywalker_hilt"}, LocalPlayer, CacheModelData)
+
+end
+
+Events:Subscribe("ModulesLoad", ModulesLoad)
+
+
+
+
 function PlayerJoin(args)
-	OBJLoader.Request({path = args.player:GetValue("Jedi")}, args.player, ConstructClass)
+	if not args.player:GetValue("Jedi") then
+		pValue = "anakin"
+	end
+
+	Lightsabers[args.player:GetId()] = 
+	Lightsaber( -- Construct class
+		Model.Create(ModelData[pValue]),
+		LightsaberColors[pValue],
+		pValue,
+		p,
+		Model.Create(ModelData[pValue .. "_hilt"])
+		)
 end
 
 Events:Subscribe("PlayerJoin", PlayerJoin)
 
 function init()
 
-	OBJLoader.Request({path = LocalPlayer:GetValue("Jedi")}, LocalPlayer, ConstructClass) -- Client:GetPlayers() does NOT include LocalPlayer
-	OBJLoader.Request({path = LocalPlayer:GetValue("Jedi") .. "_hilt"}, LocalPlayer, AddHiltToClass)
+
+	local pValue = LocalPlayer:GetValue("Jedi")
+
+	local model = Model.Create(ModelData[pValue])
+	model:SetTopology(Topology.TriangleList)
+
+	local hilt = Model.Create(ModelData[pValue .. "_hilt"])
+	hilt:SetTopology(Topology.TriangleList)
+
+	Lightsabers[LocalPlayer:GetId()] = 
+	Lightsaber( -- Construct class
+		model,
+		LightsaberColors[pValue],
+		pValue,
+		LocalPlayer,
+		hilt
+		)
+
+
 
 	for p in Client:GetPlayers() do
 
-		OBJLoader.Request({path = p:GetValue("Jedi")}, p, ConstructClass) -- Load in the model for every player
-		OBJLoader.Request({path = p:GetValue("Jedi") .. "_hilt"}, p, AddHiltToClass)
+		pValue = p:GetValue("Jedi")
+
+		local model = Model.Create(ModelData[pValue])
+		model:SetTopology(Topology.TriangleList)
+
+		local hilt = Model.Create(ModelData[pValue .. "_hilt"])
+		hilt:SetTopology(Topology.TriangleList)
+
+		Lightsabers[p:GetId()] = 
+		Lightsaber( -- Construct class
+			model,
+			LightsaberColors[pValue],
+			pValue,
+			p,
+			hilt
+			)
+
 	end
 
 
@@ -32,48 +105,36 @@ function init()
 	Events:Subscribe("NetworkObjectValueChange", DetectLightsaberChange)
 end
 
-Events:Subscribe("ModulesLoad", init) -- Only allow this script to start runing when everything is finished loading, so that all the classes are in place
+Events:Subscribe("ModelsReady", init) -- Only allow this script to start runing when everything is finished loading, so that all the classes are in place
 
 function DetectLightsaberChange(args)
 
 	if args.object.__type == "Player" or args.object.__type == "LocalPlayer" then -- If network value change was on a Player object...
 		if args.key == "Jedi" then -- If it concerns our script#
 
-			OBJLoader.Request({path = args.value}, args.object, ModifyClass) -- OBJLoader uses cached requests so not much cleanup is needed
-			OBJLoader.Request({path = args.value .. "_hilt"}, args.object, AddHiltToClass)
+			local model = Model.Create(ModelData[args.value])
+			local hilt = Model.Create(ModelData[args.value .. "_hilt"])
+
+			model:SetTopology(Topology.TriangleList)
+			hilt:SetTopology(Topology.TriangleList)
+
+			Lightsabers[args.object:GetId()]:SetModel(
+				model
+				)
+
+			Lightsabers[args.object:GetId()]:SetHilt(
+				hilt
+				)
+
+			Lightsabers[args.object:GetId()]:SetLightColor(
+				LightsaberColors[args.value])
+
 		end
 	end
 end
 
-function ModifyClass(model, name, p) -- Callback
-	if Lightsabers[p:GetId()] then
-		local class = Lightsabers[p:GetId()] -- Lookup the lightsaber
-		class:SetModel(model) -- aand change the model
-		class:SetLightColor(LightsaberColors[p:GetValue("Jedi")]) -- make light color correspond
-	end
-	
-end
 
 
-
-function ConstructClass(model, name, p) -- Callback from OBJLoader
-
-	name = name:lower() -- just making sure
-
-	local lightsaberColor = LightsaberColors[name]
-
-	Lightsabers[p:GetId()] = Lightsaber(model, lightsaberColor, name, p) -- Add to global array to keep track of lightsabers
-	-- Debug: print("Lightsabers ["..p:GetId().."] = his") -- Debug
-
-	-- Request hilt model
-	
-
-end
-
-function AddHiltToClass(model, name, p)
-	local class = Lightsabers[p:GetId()] -- Lookup class
-	class:SetHilt(model)
-end
 
 function MoveLightsabers()
 	for p in Client:GetPlayers() do

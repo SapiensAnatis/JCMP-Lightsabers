@@ -27,6 +27,40 @@ function OBJLoader.MeshRequester:__init(args , playerA , callback , callbackInst
 
 end
 
+function print_r ( t )  
+    local print_r_cache={}
+    local function sub_print_r(t,indent)
+        if (print_r_cache[tostring(t)]) then
+            print(indent.."*"..tostring(t))
+        else
+            print_r_cache[tostring(t)]=true
+            if (type(t)=="table") then
+                for pos,val in pairs(t) do
+                    if (type(val)=="table") then
+                        print(indent.."["..pos.."] => "..tostring(t).." {")
+                        sub_print_r(val,indent..string.rep(" ",string.len(pos)+8))
+                        print(indent..string.rep(" ",string.len(pos)+6).."}")
+                    elseif (type(val)=="string") then
+                        print(indent.."["..pos..'] => "'..val..'"')
+                    else
+                        print(indent.."["..pos.."] => "..tostring(val))
+                    end
+                end
+            else
+                print(indent..tostring(t))
+            end
+        end
+    end
+    if (type(t)=="table") then
+        print(tostring(t).." {")
+        sub_print_r(t,"  ")
+        print("}")
+    else
+        sub_print_r(t,"  ")
+    end
+    print()
+end
+
 function OBJLoader.MeshRequester:Receive(args)
 	if args.modelPath ~= self.modelPath then
 		-- Debug: print("Model path invalid.")
@@ -44,7 +78,7 @@ function OBJLoader.MeshRequester:Receive(args)
 	
 	-- Create the Models from the models. The choice of variable names wasn't well thought out...
 	for modelName , mesh in pairs(modelData.meshes) do
-		local vertices = {}
+		vertices = {}
 		local depthsBuffer = 0
 		-- Convert the mesh into a table of vertices, which will be turned into a Model.
 		for index , triangleData in ipairs(mesh.triangleData) do
@@ -70,6 +104,7 @@ function OBJLoader.MeshRequester:Receive(args)
 			end
 		end
 		
+
 		local model = Model.Create(vertices)
 		model:SetTopology(Topology.TriangleList)
 		model:Set2D(self.is2D)
@@ -123,6 +158,8 @@ function OBJLoader.MeshRequester:Receive(args)
 	elseif self.type == OBJLoader.Type.MultipleDepthSorted then
 		self.result = self.models
 	end
+
+	self.result = vertices
 	
 	for index , callback in ipairs(self.callbacks) do
 		self:ForceCallback(callback.func , callback.instance)
