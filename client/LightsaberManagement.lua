@@ -42,7 +42,7 @@ function ModulesLoad()
 
 end
 
-Events:Subscribe("ModulesLoad", ModulesLoad)
+Events:Subscribe("ModuleLoad", ModulesLoad)
 
 
 
