@@ -9,6 +9,7 @@
 ----------------------------------------------------------------------------------------------------
 
 OBJLoader = {}
+previous = {}
 
 OBJLoader.cache = {}
 
@@ -29,8 +30,13 @@ OBJLoader.Load = function(path)
 		path = path:sub(1 , path:len() - 4)
 	end
 	
+	if previous[path] then
+		if type(previous[path]) == "table" then
+			print("---------Returning old")
+			return previous[path]
+		end
+	end
 
-	
 	local model = {}
 	model.vertices = {}
 	model.meshes = {}
@@ -154,7 +160,8 @@ OBJLoader.Load = function(path)
 		model.meshes[meshName] = mesh
 	end
 	
-	
+	previous[path] = model
+	print("Returning with data structure type " .. type(model))
 	return model
 end
 

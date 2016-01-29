@@ -1,3 +1,29 @@
+
+
+function CreateSprite(image)
+   local imageSize = image:GetSize()
+   local size = Vector2(imageSize.x / imageSize.y, 1) / 2
+   local uv1, uv2 = image:GetUV()
+
+   local sprite = Model.Create({
+      Vertex(Vector2(-size.x, size.y), Vector2(uv1.x, uv1.y)),
+      Vertex(Vector2(-size.x,-size.y), Vector2(uv1.x, uv2.y)),
+      Vertex(Vector2( size.x,-size.y), Vector2(uv2.x, uv2.y)),
+      Vertex(Vector2( size.x,-size.y), Vector2(uv2.x, uv2.y)),
+      Vertex(Vector2( size.x, size.y), Vector2(uv2.x, uv1.y)),
+      Vertex(Vector2(-size.x, size.y), Vector2(uv1.x, uv1.y))
+   })
+
+   sprite:SetTexture(image)
+   sprite:SetTopology(Topology.TriangleList)
+
+   return sprite
+end
+
+sprites = {
+	
+}
+
 LightsaberColors = { -- Define an easy reference of lightsaber colours
 	["anakin"] = Color(80, 80, 255), -- keys = filenames
 	["darth vader"] = Color(255, 25, 25),
@@ -16,6 +42,7 @@ ModelData = {
 
 
 function CacheModelData(table, name)
+	print("CacheModelData returned with data of type " .. type(table))
 	ModelData[name] = table
 
 	if name == "luke skywalker_hilt" then -- The last model to be loadedl
@@ -39,6 +66,13 @@ function ModulesLoad()
 	OBJLoader.Request({path = "luke skywalker"}, LocalPlayer, CacheModelData)
 	OBJLoader.Request({path = "luke skywalker_hilt"}, LocalPlayer, CacheModelData)
 
+	print("loading images")
+	sprites["anakin"] = CreateSprite(Image.Create(AssetLocation.Resource, "anakin"))
+	print("loaded anakin")
+	sprites["darth vader"] = CreateSprite(Image.Create(AssetLocation.Resource, "darth vader"))
+	print("loaded vader")
+	sprites["luke skywalker"] = CreateSprite(Image.Create(AssetLocation.Resource, "luke skywalker"))
+	print("loaded luke")
 
 end
 
@@ -69,8 +103,9 @@ Events:Subscribe("PlayerJoin", PlayerJoin)
 function init()
 
 
-	local pValue = LocalPlayer:GetValue("Jedi")
-
+	local pValue = LocalPlayer:GetValue("Jedi"):lower()
+	print("Model data type: " .. type(ModelData[pValue]))
+	print("pValue = " .. pValue)
 	local model = Model.Create(ModelData[pValue])
 	model:SetTopology(Topology.TriangleList)
 
@@ -83,7 +118,8 @@ function init()
 		LightsaberColors[pValue],
 		pValue,
 		LocalPlayer,
-		hilt
+		hilt,
+		sprites[pValue]
 		)
 
 
@@ -104,13 +140,16 @@ function init()
 			LightsaberColors[pValue],
 			pValue,
 			p,
-			hilt
+			hilt,
+			sprites[pValue]
 			)
 
 	end
 
 
 	Events:Subscribe("Render", MoveLightsabers) -- Once everything is initialized, start fixing the lightsabers to bones
+	Events:Subscribe("PreTick", MoveLightsabers)
+	Events:Subscribe("PostTick", MoveLightsabers)
 	Events:Subscribe("NetworkObjectValueChange", DetectLightsaberChange)
 end
 
@@ -124,11 +163,13 @@ function DetectLightsaberChange(args)
 			local model = Model.Create(ModelData[args.value])
 			local hilt = Model.Create(ModelData[args.value .. "_hilt"])
 
+			local sprite = sprites[args.value]
+
 			model:SetTopology(Topology.TriangleList)
 			hilt:SetTopology(Topology.TriangleList)
 
 			Lightsabers[args.object:GetId()]:SetModel(
-				model
+				model, sprite
 				)
 
 			Lightsabers[args.object:GetId()]:SetHilt(
