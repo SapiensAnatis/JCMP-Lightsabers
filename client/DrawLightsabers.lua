@@ -1,22 +1,23 @@
 
 
-
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Lightsaber object
 
 class("Lightsaber")
 
-function Lightsaber:__init(model, lightColor, modelname, player, hilt, bone, bone_s, position, position_s, angle, angle_s)
+function Lightsaber:__init(model, lightColor, modelname, player, hilt, sprite, bone, bone_s, position, position_s, angle, angle_s)
 	-- Debug: print("Initializing....")
 	-- Get properties from creation
 
 
 	self.model 		= model
 	self.lightColor = lightColor
-	self.light 		= ClientLight.Create({position = Vector3(0, 0, 0), color = Color.Black, multiplier = 3, radius = 3})
-	self.type 		= modelname
+	self.light 		= ClientLight.Create({position = Vector3(0, 0, 0), color = Color.Black, multiplier = 5, radius = 7})
 	self.player 	= player
 	self.hilt 		= hilt
+	self.image 		= Image.Create(AssetLocation.Resource, modelname)
+
+	self.sprite 	= sprite
 
 	self.transform 	= Transform3()
 
@@ -39,38 +40,10 @@ end
 
 function Lightsaber:DrawFunction()
 
+
 	if not IsValid(self.player, true) then
 		return 
 	end -- If the player is not streamed, don't bother
-
-
-	----------------------------------------------------------------------------------
-
-	-- Raycast down to account for model offset
-
-	actualStart1 = Physics:Raycast(
-		self.position,
-		self.angle * Vector3.Left, -- For whatever reason, down is left
-		0,
-		0.105).position
-
-	-- Then right a bit to again account for model offset
-
-	actualStart = Physics:Raycast(
-		actualStart1,
-		self.angle * Vector3.Down,
-		0,
-		0.042).position
-
-	-- Perform raycasting to determine self.position of light
-	lightPos = Physics:Raycast(
-		actualStart,
-		self.angle * Vector3.Forward, 
-		0, 
-		0.5).position -- Raycast 0.5m forward to determine self.position of average point of the blade (to place the light such that it illuminates evenly)
-
-	self.light:SetPosition(lightPos) -- Based on the raycast, set the light's self.position to be 0.5m along the blade which is roughly 1m long
-
 
 
 	------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -78,12 +51,63 @@ function Lightsaber:DrawFunction()
 
 
 	if self.player:GetValue("sheathed") == false then
+
+
+
+
+		----------------------------------------------------------------------------------
+
+		-- Raycast down to account for model offset
+
+		
+
+		actualStart1 = Physics:Raycast(
+			self.position,
+			self.angle * Vector3.Left, -- For whatever reason, down is left
+			0,
+			0.105).position
+
+		-- Then right a bit to again account for model offset
+
+		actualStart = Physics:Raycast(
+			actualStart1,
+			self.angle * Vector3.Down,
+			0,
+			0.042).position
+
+			-- Perform raycasting to determine self.position of light
+		lightPos = Physics:Raycast(
+			actualStart,
+			self.angle * Vector3.Forward, 
+			0, 
+			0.5).position -- Raycast 0.5m forward to determine self.position of average point of the blade (to place the light such that it illuminates evenly)
+
+		imgPos = Physics:Raycast(
+			lightPos,
+			self.angle * Vector3.Forward, 
+			0, 
+			0.14).position -- Raycast 0.5m forward to determine self.position of average point of the blade (to place the light such that it illuminates evenly)
+
+
+
+
+		self.light:SetPosition(lightPos) -- Based on the raycast, set the light's self.position to be 0.5m along the blade which is roughly 1m long
+
+
 		self.transform:Translate(self.position)
 		self.transform:Rotate(self.angle)
-
 		Render:SetTransform(self.transform)
-
+		
 		self.model:Draw()
+
+
+		Render:ResetTransform()
+		self.transform:SetIdentity() -- Clear the transform so that it isn't moved cumulatively every frame
+
+		Render:SetTransform(Transform3():Translate(imgPos):Rotate(self.angle * Angle(0, 1.57, Camera:GetAngle().pitch * -Camera:GetAngle().yaw)):Scale(Vector3(0.2, 1.05, 1)))
+		self.sprite:Draw()
+		Render:ResetTransform()
+
 
 		self.light:SetColor(self.lightColor)
 
@@ -125,12 +149,12 @@ function Lightsaber:DrawFunction()
 			Render:SetTransform(self.transform)
 
 			self.hilt:Draw()
-			self.light:SetColor(Color.Black)
+			self.light:SetColor(Color.Black) -- Easy way to temp disable
+			Render:ResetTransform()
+			self.transform:SetIdentity()
+
 		end
 	end
-
-	Render:ResetTransform()
-	self.transform:SetIdentity() -- Clear the transform so that it isn't moved cumulatively every frame
 
 
 	--------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -140,9 +164,10 @@ function Lightsaber:DrawFunction()
 end
 
 
-function Lightsaber:SetModel(newModel)
+function Lightsaber:SetModel(newModel, sprite)
 	self.model = nil -- Cleanup
 	self.model = newModel
+	self.sprite = sprite
 end
 
 function Lightsaber:SetLightColor(newColor)
