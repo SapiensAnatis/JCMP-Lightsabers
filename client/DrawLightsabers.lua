@@ -12,7 +12,11 @@ function Lightsaber:__init(model, lightColor, modelname, player, hilt, sprite, b
 
 	self.model 		= model
 	self.lightColor = lightColor
+<<<<<<< HEAD
 	self.light 		= ClientLight.Create({position = Vector3(0, 0, 0), color = Color.Black, multiplier = 5, radius = 7})
+=======
+	self.light 		= ClientLight.Create({position = Vector3(0, 0, 0), color = Color.Black, multiplier = 5, radius = 2, quadraticattenuation = 44})
+>>>>>>> origin/master
 	self.player 	= player
 	self.hilt 		= hilt
 	self.image 		= Image.Create(AssetLocation.Resource, modelname)
