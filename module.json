@@ -3,6 +3,11 @@
     "author": "",
     "author_url": "",
     "description": "Auto-generated",
-    "name": "jc2mp-buymenu"
+    "name": "lightsabers"
+  },
+  "resources": {
+	  "anakin": "http://i.imgur.com/dvmHuLn.png",
+	  "darth vader": "http://i.imgur.com/K0BpQqo.png",
+	  "luke skywalker": "http://i.imgur.com/AKUHo4f.png"
   }
 }
