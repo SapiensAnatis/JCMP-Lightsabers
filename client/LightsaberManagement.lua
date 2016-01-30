@@ -74,9 +74,11 @@ function ModulesLoad()
 	sprites["luke skywalker"] = CreateSprite(Image.Create(AssetLocation.Resource, "luke skywalker"))
 
 
+
+
 end
 
-Events:Subscribe("ModuleLoad", ModulesLoad)
+Events:Subscribe("ModulesLoad", ModulesLoad)
 
 
 
@@ -88,8 +90,7 @@ function PlayerJoin(args)
 		pValue = args.player:GetValue("Jedi")
 	end
 
-	Lightsabers[args.player:GetId()] = 
-	Lightsaber( -- Construct class
+	Lightsabers[args.player:GetId()] = Lightsaber( -- Construct class
 		Model.Create(ModelData[pValue]),
 		LightsaberColors[pValue],
 		pValue,
@@ -111,9 +112,9 @@ function init()
 	local hilt = Model.Create(ModelData[pValue .. "_hilt"])
 	hilt:SetTopology(Topology.TriangleList)
 
-	Lightsabers[LocalPlayer:GetId()] = 
-	Lightsaber( -- Construct class
-		model,
+
+
+	Lightsabers[LocalPlayer:GetId()] = Lightsaber(model,
 		LightsaberColors[pValue],
 		pValue,
 		LocalPlayer,
