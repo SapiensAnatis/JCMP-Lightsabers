@@ -6,7 +6,7 @@
 class("Lightsaber")
 
 function Lightsaber:__init(model, lightColor, modelname, player, hilt, sprite, bone, bone_s, position, position_s, angle, angle_s)
-	-- Debug: print("Initializing....")
+
 	-- Get properties from creation
 
 
