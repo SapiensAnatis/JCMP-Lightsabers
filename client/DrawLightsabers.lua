@@ -12,7 +12,15 @@ function Lightsaber:__init(model, lightColor, modelname, player, hilt, sprite, b
 
 	self.model 		= model
 	self.lightColor = lightColor
+<<<<<<< HEAD
 	self.light 		= ClientLight.Create({position = Vector3(0, 0, 0), color = Color.Black, multiplier = 5, radius = 7})
+=======
+<<<<<<< HEAD
+	self.light 		= ClientLight.Create({position = Vector3(0, 0, 0), color = Color.Black, multiplier = 5, radius = 7})
+=======
+	self.light 		= ClientLight.Create({position = Vector3(0, 0, 0), color = Color.Black, multiplier = 5, radius = 2, quadraticattenuation = 44})
+>>>>>>> origin/master
+>>>>>>> origin/master
 	self.player 	= player
 	self.hilt 		= hilt
 	self.image 		= Image.Create(AssetLocation.Resource, modelname)
@@ -104,9 +112,13 @@ function Lightsaber:DrawFunction()
 		Render:ResetTransform()
 		self.transform:SetIdentity() -- Clear the transform so that it isn't moved cumulatively every frame
 
+<<<<<<< HEAD
 		a = self.angle*Angle(0, 1.57, Camera:GetAngle().pitch/1.57+(Angle.FromVectors(self.angle * Vector3.Down, Camera:GetAngle() * Vector3.Forward)).roll)
 
 		Render:SetTransform(Transform3():Translate(imgPos):Rotate(a):Scale(Vector3(0.2, 1.05, 1)))
+=======
+		Render:SetTransform(Transform3():Translate(imgPos):Rotate(self.angle * Angle(0, 1.57, Camera:GetAngle().pitch * -Camera:GetAngle().yaw)):Scale(Vector3(0.2, 1.05, 1)))
+>>>>>>> origin/master
 		self.sprite:Draw()
 		Render:ResetTransform()
 
