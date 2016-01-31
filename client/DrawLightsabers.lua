@@ -15,7 +15,7 @@ function Lightsaber:__init(model, lightColor, modelname, player, hilt, sprite, b
 		self = nil
 		return
 	end
-	print("\t\t\tLightsaber in creation...")
+
 
 	self.model 		= model
 	self.hasBeenChanged = false
@@ -23,9 +23,9 @@ function Lightsaber:__init(model, lightColor, modelname, player, hilt, sprite, b
 	self.lightColor = lightColor
 
 	self.player 	= player
-	print("\tClass created light")
+
 	self.light 		= ClientLight.Create({position = Vector3(0, 0, 0), color = Color.Black, multiplier = 5, radius = 7})
-	print("self.light = " .. type(self.light))
+
 
 	self.hilt 		= hilt
 	self.hilt:SetTopology(Topology.TriangleList)
@@ -157,7 +157,6 @@ function Lightsaber:DrawFunction()
 		if IsValid(hTable.entity) then -- if the ray hit something
 
 			if hTable.entity.__type == "Player" or hTable.entity.__type == "Vehicle" and self.player == LocalPlayer then -- you can't damage static objects, so do a check
-				print("bzzz")
 				Network:Send("LightsaberDamage", {entity = hTable.entity})
 			end
 		end
@@ -191,7 +190,6 @@ end
 function Lightsaber:SetModel(newModel, sprite)
 
 	self.model = nil -- Cleanup
-	print("Deleted model!! Look: " .. type(self.model))
 	self.model = newModel
 	self.sprite = sprite
 
