@@ -56,7 +56,7 @@ function ChangeLightsaberFromChat(args)
 
 		--print("Player changed!")
 
-		nameProperGrammar = string.gsub(" "..args.player:GetValue("Jedi"), "%W%l", string.upper):sub(2) -- Title case
+		nameProperGrammar = string.gsub(" " .. args.player:GetValue("Jedi"), "%W%l", string.upper):sub(2) -- Title case
 
 		Chat:Send(args.player, "You are holding " .. nameProperGrammar .. "'s lightsaber.", LightsaberColors[args.player:GetValue("Jedi")])
 		args.player:SetColor(LightsaberColors[args.player:GetValue("Jedi")])
