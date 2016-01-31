@@ -101,7 +101,7 @@ end
 
 
 function ModulesLoad()
-	print("BEGIN!")
+	print("Lightsabers began on client after server gave OK")
 	if IsValid(LocalPlayer) then
 		pValue = LocalPlayer:GetValue("HasLightsaber") or false
 		if pValue then
@@ -144,7 +144,7 @@ end
 
 
 function MakeDemands() -- Find out how many lightsabers we initially need
-	Console:Print("Making demand for someone else", Color.Green)
+
 	for p in Client:GetPlayers() do
 		if Lightsabers[p:GetId()] then return end
 		if p:GetValue("HasLightsaber") then
@@ -171,15 +171,14 @@ Network:Subscribe("BEGIN", ModulesLoad)
 function ForceSense(args)
 	
 	if args.entity.__type != "Player" then return end
-	print(tostring(args.entity) .. " is streaming in.")
-	print(tostring(args.entity) .. " is a player.")
+
 	if not args.entity:GetValue("HasLightsaber") then return end 
-	print("it is supposed to have a lightsaber")
+
 	local p = args.entity
 
 	if Lightsabers[p:GetId()] != nil then return end -- if they already have a lightsaber from a previous encounter
-	print("it does not already have a lightsaber")
 
+	print("Someone is streaming in. Here's a Star Wars reference.")
 	print("SNOKE: There has been an awakening...have you felt it..?")
 	print("KYLO REN: Yes.")
 	print("SNOKE: Even you...the leader of the Knights of Ren...have never faced such a test.")
@@ -206,18 +205,14 @@ Events:Subscribe("EntitySpawn", ForceSense)
 
 
 function ucantcme(args)
-	print("We have an object of type '" .. args.entity.__type .. "' streaming out.")
 	if args.entity.__type == "Player" then
 		if args.entity:GetValue("HasLightsaber") then
-			Console:Print("\t\t\t\t\tUnstreaming saber", Color.Red)
 			if Lightsabers[args.entity:GetId()] then
 				Lightsabers[args.entity:GetId()].model = nil
 				Lightsabers[args.entity:GetId()].sprite = nil
 				Lightsabers[args.entity:GetId()].hilt = nil
 				Lightsabers[args.entity:GetId()]:Remove()
 				Lightsabers[args.entity:GetId()] = nil
-
-				print("SPOILER: " .. args.entity:GetName() .. " dies.")
 			end
 		end
 	end
@@ -227,14 +222,13 @@ Events:Subscribe("EntityDespawn", ucantcme)
 
 function ForceSensePart2(p)
 
-	print("I sense the force is strong with " .. p:GetName())
+
 	if p == LocalPlayer then return end -- localplayer has a seperate function
 	if not IsValid(p) then return end
 	if Lightsabers[p:GetId()] then return end -- no duplicates
 	pValue = p:GetValue("Jedi")
 
-	print("ForceSensePart2 making lightsaber. Types: Nonhilt: " .. type(ModelData[pValue]) .. " hilt: " .. type(ModelData[pValue .."_hilt"]))
-	print("\tForceSensePart2(p) making lightsaber for " .. p:GetName())
+
 	Lightsabers[p:GetId()] = Lightsaber(
 		Model.Create(ModelData[pValue]),
 		LightsaberColors[pValue],
@@ -250,9 +244,9 @@ end
 
 function RequestModelData(name, p, callback)
 	if not IsValid(p) then return end
-	print("Rendering model " .. name .. " for " .. p:GetName())
+
 	if Lightsabers[p:GetId()] then
-		print("Lightsaber is already made")
+
 		if Lightsabers[p:GetId()].name == name then return end
 	end
 	callback = callback or CacheModelData
@@ -280,7 +274,7 @@ function DetectLightsaberChange(args)
 	if IsValid(args.object) then
 
 		if args.object.__type == "Player" or args.object.__type == "LocalPlayer" then -- If network value change was on a Player object...
-			print("VALUE CHANGE: '" .. args.key .. "'' for player '" .. args.object:GetName() .. "' now = " .. tostring(args.value))
+
 			if args.key == "Jedi" then -- If it concerns our script#
 				if ModelData[args.value] and ModelData[args.value .. "_hilt"] and sprites[args.value] then
 					local model = Model.Create(ModelData[args.value])
@@ -306,7 +300,7 @@ function DetectLightsaberChange(args)
 				end
 
 			elseif args.key == "HasLightsaber" then
-				print("Woah someone may have just lost soemthing")
+
 				if args.value then
 					pValue = args.object:GetValue("Jedi")
 					if ModelData[pValue] and ModelData[pValue .. "_hilt"] and sprites[pValue] then
@@ -323,7 +317,7 @@ function DetectLightsaberChange(args)
 					end
 				else
 					if Lightsabers[args.object:GetId()] then
-						print("----------------------------------------------------------------------------------------------------------------------------DIsarmed")
+
 						Lightsabers[args.object:GetId()]:Remove()
 						Lightsabers[args.object:GetId()].model = nil
 						Lightsabers[args.object:GetId()].sprite = nil
