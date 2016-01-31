@@ -20,12 +20,9 @@ function LoadLightsaberOnJoin(args)
 	if args.player:GetValue("Jedi") == nil then
 		if LightsaberPreferences[args.player:GetSteamId().string] == nil then
 			args.player:SetNetworkValue("Jedi", "anakin")
-		else
-			args.player:SetNetworkValue("Jedi", LightsaberPreferences[args.player:GetSteamId().string])
 		end
 	end
 
-	Network:Send(args.player, "LightsaberReady")
 end
 
 Events:Subscribe("PlayerJoin", LoadLightsaberOnJoin)
