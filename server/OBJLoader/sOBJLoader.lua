@@ -160,7 +160,7 @@ OBJLoader.Load = function(path)
 	end
 	
 	previous[path] = model
-
+	print("Returning back with model " .. path)
 	return model
 end
 

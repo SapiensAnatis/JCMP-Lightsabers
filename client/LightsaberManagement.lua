@@ -30,155 +30,309 @@ LightsaberColors = { -- Define an easy reference of lightsaber colours
 	["luke skywalker"] = Color(25, 255, 25),
 }
 
-LightsaberFilenames = { -- Filenames excluding OBJ extension
-	"anakin",
-	"darth vader",
-	"luke skywalker",
-}
+
 
 ModelData = {
 
 }
 
+lightsabersNeeded = {
+	
+}
 
-function CacheModelData(table, name)
+initiallyLoading = true
+
+
+function CacheModelData(table, name, player)
 
 	ModelData[name] = table
 
-	if name == "luke skywalker_hilt" then -- The last model to be loadedl
-		print("Lightsaber loading: Complete! In " .. loadTimer:GetSeconds() .. " seconds.") -- A useful statistic for the user, so I will leave it in.
 
-		loadTimer = nil
-		Events:Fire("ModelsReady")
-	end
-end
+	-- If this is part 2 of a request:
 
-function ModulesLoad()
+	if string.find(name, "_hilt") != nil then
 
-	loadTimer = Timer()
-	print("Loading and interpreting lightsaber model data... (approx. 0.5 MB)")
-	OBJLoader.Request({path = "anakin"}, LocalPlayer, CacheModelData)
-	OBJLoader.Request({path = "anakin_hilt"}, LocalPlayer, CacheModelData)
-
-	OBJLoader.Request({path = "darth vader"}, LocalPlayer, CacheModelData)
-	OBJLoader.Request({path = "darth vader_hilt"}, LocalPlayer, CacheModelData)
-
-	OBJLoader.Request({path = "luke skywalker"}, LocalPlayer, CacheModelData)
-	OBJLoader.Request({path = "luke skywalker_hilt"}, LocalPlayer, CacheModelData)
-
-
-	sprites["anakin"] = CreateSprite(Image.Create(AssetLocation.Resource, "anakin"))
-
-	sprites["darth vader"] = CreateSprite(Image.Create(AssetLocation.Resource, "darth vader"))
-
-	sprites["luke skywalker"] = CreateSprite(Image.Create(AssetLocation.Resource, "luke skywalker"))
+		for i, v in pairs(lightsabersNeeded) do
+			lastPlayer = v
+		end
 
 
 
+		if player == LocalPlayer then
 
-end
+			StartMakingDemands(player, true, true)
+		else
 
-Events:Subscribe("ModuleLoad", ModulesLoad)
-
-
-
-
-function PlayerJoin(args)
-	if not args.player:GetValue("Jedi") then
-		pValue = "anakin"
-	else
-		pValue = args.player:GetValue("Jedi")
+			if lastPlayer == player and initiallyLoading then
+				initiallyLoading = false
+				Events:Subscribe("EntitySpawn", ForceSense)
+			end
+			ForceSensePart2(player)
+		end
 	end
 
-	Lightsabers[args.player:GetId()] = Lightsaber( -- Construct class
-		Model.Create(ModelData[pValue]),
-		LightsaberColors[pValue],
-		pValue,
-		args.player,
-		Model.Create(ModelData[pValue .. "_hilt"])
-		)
+
+
+
 end
 
-Events:Subscribe("PlayerJoin", PlayerJoin)
+function CallbackForChange(table, name, player)
+	ModelData[name] = table
+	if string.find(name, "_hilt") != nil then--if it's a secondary request
+		name = player:GetValue("Jedi")
+		local model = Model.Create(ModelData[name])
+		local hilt = Model.Create(ModelData[name .. "_hilt"])
 
-function init()
+		local sprite = sprites[name]
 
-
-	local pValue = LocalPlayer:GetValue("Jedi"):lower()
-
-	local model = Model.Create(ModelData[pValue])
-	model:SetTopology(Topology.TriangleList)
-
-	local hilt = Model.Create(ModelData[pValue .. "_hilt"])
-	hilt:SetTopology(Topology.TriangleList)
-
-
-
-	Lightsabers[LocalPlayer:GetId()] = Lightsaber(model,
-		LightsaberColors[pValue],
-		pValue,
-		LocalPlayer,
-		hilt,
-		sprites[pValue]
-		)
-
-
-
-	for p in Client:GetPlayers() do
-
-		pValue = p:GetValue("Jedi")
-
-		local model = Model.Create(ModelData[pValue])
-		model:SetTopology(Topology.TriangleList)
-
-		local hilt = Model.Create(ModelData[pValue .. "_hilt"])
-		hilt:SetTopology(Topology.TriangleList)
-
-		Lightsabers[p:GetId()] = 
-		Lightsaber( -- Construct class
-			model,
-			LightsaberColors[pValue],
-			pValue,
-			p,
-			hilt,
-			sprites[pValue]
+		Lightsabers[player:GetId()]:SetModel(
+			model, sprite
 			)
 
+		Lightsabers[player:GetId()]:SetHilt(
+			hilt
+			)
+
+		Lightsabers[player:GetId()]:SetLightColor(
+			LightsaberColors[name]
+			)
 	end
+end
+
+
+function ModulesLoad()
+	print("BEGIN!")
+	if IsValid(LocalPlayer) then
+		pValue = LocalPlayer:GetValue("HasLightsaber") or false
+		if pValue then
+			RequestModelData(LocalPlayer:GetValue("Jedi") or "anakin", LocalPlayer) -- LocalPlayer first and foremost
+		else
+			StartMakingDemands(LocalPlayer, true, false)
+		end
+	end
+
+	
+
 
 
 	Events:Subscribe("Render", MoveLightsabers) -- Once everything is initialized, start fixing the lightsabers to bones
-	Events:Subscribe("PreTick", MoveLightsabers)
+	Events:Subscribe("PreTick", MoveLightsabers) -- Subscribing to three events ensures that they don't drift about at high speeds
 	Events:Subscribe("PostTick", MoveLightsabers)
 	Events:Subscribe("NetworkObjectValueChange", DetectLightsaberChange)
+
 end
 
-Events:Subscribe("ModelsReady", init) -- Only allow this script to start runing when everything is finished loading, so that all the classes are in place
+function StartMakingDemands(p, initial, makeForLP) -- For localplayer
+	initial = initial or true
+	p = p or LocalPlayer -- weird shit happens
+	if makeForLP then
+		pValue = p:GetValue("Jedi")
+
+		if Lightsabers[p:GetId()] then return end
+
+		Lightsabers[p:GetId()] = Lightsaber(
+			Model.Create(ModelData[pValue]),
+			LightsaberColors[pValue],
+			pValue,
+			p,
+			Model.Create(ModelData[pValue .. "_hilt"]),
+			sprites[pValue]
+		)
+	end
+	if initial then MakeDemands() end
+end
+
+
+function MakeDemands() -- Find out how many lightsabers we initially need
+	Console:Print("Making demand for someone else", Color.Green)
+	for p in Client:GetPlayers() do
+		if Lightsabers[p:GetId()] then return end
+		if p:GetValue("HasLightsaber") then
+			if lightsabersNeeded[p:GetValue("Jedi")] == nil then
+				lightsabersNeeded[p:GetValue("Jedi")] = p
+			end
+		end
+	end
+
+
+	for i, v in pairs(lightsabersNeeded) do
+
+		RequestModelData(i, v)
+	end
+end
+
+
+
+
+
+
+Network:Subscribe("BEGIN", ModulesLoad)
+
+function ForceSense(args)
+	
+	if args.entity.__type != "Player" then return end
+	print(tostring(args.entity) .. " is streaming in.")
+	print(tostring(args.entity) .. " is a player.")
+	if not args.entity:GetValue("HasLightsaber") then return end 
+	print("it is supposed to have a lightsaber")
+	local p = args.entity
+
+	if Lightsabers[p:GetId()] != nil then return end -- if they already have a lightsaber from a previous encounter
+	print("it does not already have a lightsaber")
+
+	print("SNOKE: There has been an awakening...have you felt it..?")
+	print("KYLO REN: Yes.")
+	print("SNOKE: Even you...the leader of the Knights of Ren...have never faced such a test.")
+
+	pValue = p:GetValue("Jedi") or "anakin"
+
+	if ModelData[pValue] and ModelData[pValue .. "_hilt"] and sprites[pValue] then
+		Lightsabers[p:GetId()] = Lightsaber(
+			Model.Create(ModelData[pValue]),
+			LightsaberColors[pValue],
+			pValue,
+			p,
+			Model.Create(ModelData[pValue .. "_hilt"]),
+			sprites[pValue]
+		)
+
+	print("KYLO REN: It is time.")
+	else
+		RequestModelData(pValue, p)
+	end
+end
+
+Events:Subscribe("EntitySpawn", ForceSense)
+
+
+function ucantcme(args)
+	print("We have an object of type '" .. args.entity.__type .. "' streaming out.")
+	if args.entity.__type == "Player" then
+		if args.entity:GetValue("HasLightsaber") then
+			Console:Print("\t\t\t\t\tUnstreaming saber", Color.Red)
+			if Lightsabers[args.entity:GetId()] then
+				Lightsabers[args.entity:GetId()].model = nil
+				Lightsabers[args.entity:GetId()].sprite = nil
+				Lightsabers[args.entity:GetId()].hilt = nil
+				Lightsabers[args.entity:GetId()]:Remove()
+				Lightsabers[args.entity:GetId()] = nil
+
+				print("SPOILER: " .. args.entity:GetName() .. " dies.")
+			end
+		end
+	end
+end
+
+Events:Subscribe("EntityDespawn", ucantcme)
+
+function ForceSensePart2(p)
+
+	print("I sense the force is strong with " .. p:GetName())
+	if p == LocalPlayer then return end -- localplayer has a seperate function
+	if not IsValid(p) then return end
+	if Lightsabers[p:GetId()] then return end -- no duplicates
+	pValue = p:GetValue("Jedi")
+
+	print("ForceSensePart2 making lightsaber. Types: Nonhilt: " .. type(ModelData[pValue]) .. " hilt: " .. type(ModelData[pValue .."_hilt"]))
+	print("\tForceSensePart2(p) making lightsaber for " .. p:GetName())
+	Lightsabers[p:GetId()] = Lightsaber(
+		Model.Create(ModelData[pValue]),
+		LightsaberColors[pValue],
+		pValue,
+		p,
+		Model.Create(ModelData[pValue .. "_hilt"]),
+		sprites[pValue]
+	)
+
+end
+
+
+
+function RequestModelData(name, p, callback)
+	if not IsValid(p) then return end
+	print("Rendering model " .. name .. " for " .. p:GetName())
+	if Lightsabers[p:GetId()] then
+		print("Lightsaber is already made")
+		if Lightsabers[p:GetId()].name == name then return end
+	end
+	callback = callback or CacheModelData
+	if ModelData[name] == nil then
+		OBJLoader.Request({path = name}, p, callback)
+	else
+		callback(ModelData[name], name, p)
+	end
+
+	if ModelData[name .. "_hilt"] == nil then 
+		OBJLoader.Request({path = name .. "_hilt"}, p, callback)
+	else
+		callback(ModelData[name .. "_hilt"], name .. "_hilt", p)
+	end
+
+	sprites[name] = CreateSprite(Image.Create(AssetLocation.Resource, name))
+
+	
+	
+
+end
+
 
 function DetectLightsaberChange(args)
+	if IsValid(args.object) then
 
-	if args.object.__type == "Player" or args.object.__type == "LocalPlayer" then -- If network value change was on a Player object...
-		if args.key == "Jedi" then -- If it concerns our script#
+		if args.object.__type == "Player" or args.object.__type == "LocalPlayer" then -- If network value change was on a Player object...
+			print("VALUE CHANGE: '" .. args.key .. "'' for player '" .. args.object:GetName() .. "' now = " .. tostring(args.value))
+			if args.key == "Jedi" then -- If it concerns our script#
+				if ModelData[args.value] and ModelData[args.value .. "_hilt"] and sprites[args.value] then
+					local model = Model.Create(ModelData[args.value])
+					local hilt = Model.Create(ModelData[args.value .. "_hilt"])
 
-			local model = Model.Create(ModelData[args.value])
-			local hilt = Model.Create(ModelData[args.value .. "_hilt"])
+					local sprite = sprites[args.value]
 
-			local sprite = sprites[args.value]
+					model:SetTopology(Topology.TriangleList)
+					hilt:SetTopology(Topology.TriangleList)
 
-			model:SetTopology(Topology.TriangleList)
-			hilt:SetTopology(Topology.TriangleList)
+					Lightsabers[args.object:GetId()]:SetModel(
+						model, sprite
+						)
 
-			Lightsabers[args.object:GetId()]:SetModel(
-				model, sprite
-				)
+					Lightsabers[args.object:GetId()]:SetHilt(
+						hilt
+						)
 
-			Lightsabers[args.object:GetId()]:SetHilt(
-				hilt
-				)
+					Lightsabers[args.object:GetId()]:SetLightColor(
+						LightsaberColors[args.value])
+				else
+					RequestModelData(args.value, args.object, CallbackForChange)
+				end
 
-			Lightsabers[args.object:GetId()]:SetLightColor(
-				LightsaberColors[args.value])
-
+			elseif args.key == "HasLightsaber" then
+				print("Woah someone may have just lost soemthing")
+				if args.value then
+					pValue = args.object:GetValue("Jedi")
+					if ModelData[pValue] and ModelData[pValue .. "_hilt"] and sprites[pValue] then
+						Lightsabers[args.object:GetId()] = Lightsaber(
+							Model.Create(ModelData[pValue]),
+							LightsaberColors[pValue],
+							pValue,
+							args.object,
+							Model.Create(ModelData[pValue .. "_hilt"]),
+							sprites[pValue]
+						)
+					else
+						RequestModelData(pValue, args.object, CacheModelData)
+					end
+				else
+					if Lightsabers[args.object:GetId()] then
+						print("----------------------------------------------------------------------------------------------------------------------------DIsarmed")
+						Lightsabers[args.object:GetId()]:Remove()
+						Lightsabers[args.object:GetId()].model = nil
+						Lightsabers[args.object:GetId()].sprite = nil
+						Lightsabers[args.object:GetId()].hilt = nil
+						Lightsabers[args.object:GetId()]:Remove()
+						Lightsabers[args.object:GetId()] = nil
+					end
+				end
+			end
 		end
 	end
 end
@@ -222,16 +376,20 @@ Events:Subscribe("PlayerQuit", DeleteLightsaberQuit)
 
 
 function SheathUnsheathKeys(args)
-	if args.key == string.byte("G") then
-		Network:Send("SheathKeyTrigger", player)
+	if LocalPlayer:GetValue("HasLightsaber") then
+		if args.key == string.byte("G") and not LocalPlayer:InVehicle() then
+			Network:Send("KeyPressSheath", not LocalPlayer:GetValue("sheathed"))
+		end
 	end
 end
 
 Events:Subscribe("KeyUp", SheathUnsheathKeys)
 
 function ForceSheath() -- use the force, heh
-	if LocalPlayer:InVehicle() then
-		LocalPlayer:SetValue("sheathed", true) -- It looks really weird if you have a lightsaber out while flying a plane. And it's irresponsible.
+	if LocalPlayer:GetValue("HasLightsaber") then
+		if LocalPlayer:InVehicle() then
+			Network:Send("KeyPressSheath", true) -- It looks really weird if you have a lightsaber out while flying a plane. And it's irresponsible.
+		end
 	end
 end
 

@@ -11,18 +11,32 @@ class("Lightsaber")
 function Lightsaber:__init(model, lightColor, modelname, player, hilt, sprite, bone, bone_s, position, position_s, angle, angle_s)
 	-- Debug: print("Initializing....")
 	-- Get properties from creation
-
+	if Lightsabers[player:GetId()] then 
+		self = nil
+		return
+	end
+	print("\t\t\tLightsaber in creation...")
 
 	self.model 		= model
+	self.hasBeenChanged = false
+	self.model:SetTopology(Topology.TriangleList)
 	self.lightColor = lightColor
 
-	self.light 		= ClientLight.Create({position = Vector3(0, 0, 0), color = Color.Black, multiplier = 5, radius = 7})
 	self.player 	= player
+	print("\tClass created light")
+	self.light 		= ClientLight.Create({position = Vector3(0, 0, 0), color = Color.Black, multiplier = 5, radius = 7})
+	print("self.light = " .. type(self.light))
 
 	self.hilt 		= hilt
+	self.hilt:SetTopology(Topology.TriangleList)
 	self.image 		= Image.Create(AssetLocation.Resource, modelname)
 
 	self.sprite 	= sprite
+	self.name = modelname
+
+
+	s_c = Vector3(1, 1, 1)
+
 
 	self.transform 	= Transform3()
 
@@ -95,15 +109,15 @@ function Lightsaber:DrawFunction()
 			0, 
 			0.14).position -- Raycast 0.5m forward to determine self.position of average point of the blade (to place the light such that it illuminates evenly)
 
-
-		self.light:SetPosition(lightPos) -- Based on the raycast, set the light's self.position to be 0.5m along the blade which is roughly 1m long
-
+		if IsValid(self.light) then
+			self.light:SetPosition(lightPos) -- Based on the raycast, set the light's self.position to be 0.5m along the blade which is roughly 1m long
+		end
 
 		self.transform:Translate(self.position)
 		self.transform:Rotate(self.angle)
 		Render:SetTransform(self.transform)
 		
-		self.model:Draw()
+		if IsValid(self.model) then self.model:Draw() end
 
 
 		Render:ResetTransform()
@@ -111,20 +125,16 @@ function Lightsaber:DrawFunction()
 
 		a = self.angle*Angle(0, 1.57, Camera:GetAngle().pitch/1.57+(Angle.FromVectors(self.angle * Vector3.Down, Camera:GetAngle() * Vector3.Forward)).roll)
 
-		Render:SetTransform(Transform3():Translate(imgPos):Rotate(a):Scale(Vector3(0.2, 1.05, 1)))
 
-		a = self.angle*Angle(0, 1.57, Camera:GetAngle().pitch/1.57+(Angle.FromVectors(self.angle * Vector3.Down, Camera:GetAngle() * Vector3.Forward)).roll)
+		Render:SetTransform(Transform3():Translate(imgPos):Rotate(a):Scale(s_c))
 
-		Render:SetTransform(Transform3():Translate(imgPos):Rotate(a):Scale(Vector3(0.2, 1.05, 1)))
 
-		Render:SetTransform(Transform3():Translate(imgPos):Rotate(self.angle * Angle(0, 1.57, Camera:GetAngle().pitch * -Camera:GetAngle().yaw)):Scale(Vector3(0.2, 1.05, 1)))
-
-		self.sprite:Draw()
+		if IsValid(self.sprite) then self.sprite:Draw() end
 		Render:ResetTransform()
 
-
-		self.light:SetColor(self.lightColor)
-
+		if IsValid(self.light) then
+			self.light:SetColor(self.lightColor)
+		end
 		-------------------------------------------------------------------------------------------------------------------------------------------------------
 		-- Deadliness (not in seperate function because it relies on self.position, similar events also)
 		
@@ -147,7 +157,7 @@ function Lightsaber:DrawFunction()
 		if IsValid(hTable.entity) then -- if the ray hit something
 
 			if hTable.entity.__type == "Player" or hTable.entity.__type == "Vehicle" and self.player == LocalPlayer then -- you can't damage static objects, so do a check
-
+				print("bzzz")
 				Network:Send("LightsaberDamage", {entity = hTable.entity})
 			end
 		end
@@ -155,20 +165,21 @@ function Lightsaber:DrawFunction()
 
 
 	else
-		if self.hilt then
+		if IsValid(self.hilt) then
 			self.transform:Translate(self.position_s)
 			self.transform:Rotate(self.angle_s)
 
 			Render:SetTransform(self.transform)
 
 			self.hilt:Draw()
-			self.light:SetColor(Color.Black) -- Easy way to temp disable
+			if IsValid(self.light) then
+				self.light:SetColor(Color.Black) -- Easy way to temp disable
+			end
 			Render:ResetTransform()
 			self.transform:SetIdentity()
 
 		end
 	end
-
 
 	--------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Debug (comment out for release)
@@ -178,30 +189,44 @@ end
 
 
 function Lightsaber:SetModel(newModel, sprite)
+
 	self.model = nil -- Cleanup
+	print("Deleted model!! Look: " .. type(self.model))
 	self.model = newModel
 	self.sprite = sprite
+
+	s_c = Vector3(1, 1, 1)
+
+
+	self.model:SetTopology(Topology.TriangleList)
 end
 
 function Lightsaber:SetLightColor(newColor)
-	self.lightColor = newColor
-	self.light:SetColor(newColor)
+	if IsValid(self.light) then
+		self.lightColor = newColor
+		self.light:SetColor(newColor)
+	end
 end
 
 function Lightsaber:Remove()
 
-	if self.light then
+	if IsValid(self.light) then
 		self.light:SetColor(Color.Black) -- Precaution: if we can't fully quit, at least remove the invisible lights from everywhere
 		self.light:Remove()
 		self.light = nil
 	end
-
+	self.sprite = nil
+	self.model = nil
+	self.hilt = nil
+	self.image = nil
 
 
 	
 
 	self = nil
 end
+
+
 
 function Lightsaber:SetPosition(newPos)
 	self.position = newPos
@@ -222,5 +247,6 @@ end
 
 function Lightsaber:SetHilt(newModel)
 	self.hilt = newModel
+	self.hilt:SetTopology(Topology.TriangleList)
 end
 
