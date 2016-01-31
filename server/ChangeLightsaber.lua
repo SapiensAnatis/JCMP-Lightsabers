@@ -80,7 +80,7 @@ Events:Subscribe("PlayerChat", ChangeLightsaberFromChat)
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function ChangeSheath(args, player)
-	player:SetNetworkValue("sheathed", args )
+	player:SetNetworkValue("sheathed", args)
 end
 
 Network:Subscribe("KeyPressSheath", ChangeSheath)
