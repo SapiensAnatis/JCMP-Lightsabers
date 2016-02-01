@@ -7,7 +7,7 @@ LightsaberPreferences = {}
 Events:Subscribe("ClientModuleLoad", function(args)
 	p = args.player
 	print(" --------------------------------------- Initializing script for player " .. p:GetName() )
-	p:SetNetworkValue("HasLightsaber", false)
+	p:SetNetworkValue("HasLightsaber", true)
 	Network:Send(p, "BEGIN")
 	p:SetNetworkValue("sheathed", false)
 	print("Made " .. p:GetName() .. " a Jedi? " .. tostring(p:GetValue("HasLightsaber")))
