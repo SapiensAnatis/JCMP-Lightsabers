@@ -214,6 +214,7 @@ end
 
 function Lightsaber:UnfuckScale()
 	s_c = Vector3(0.2, 1.05, 1)
+	self.player:SetValue("ScaleUnfucked", 1)
 end
 
 function Lightsaber:Remove()

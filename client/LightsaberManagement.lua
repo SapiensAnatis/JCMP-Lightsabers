@@ -115,6 +115,7 @@ function ModulesLoad()
 
 
 
+
 	Events:Subscribe("Render", MoveLightsabers) -- Once everything is initialized, start fixing the lightsabers to bones
 	Events:Subscribe("PreTick", MoveLightsabers) -- Subscribing to three events ensures that they don't drift about at high speeds
 	Events:Subscribe("PostTick", MoveLightsabers)
@@ -138,7 +139,7 @@ function StartMakingDemands(p, initial, makeForLP) -- For localplayer
 			Model.Create(ModelData[pValue .. "_hilt"]),
 			sprites[pValue]
 		)
-		Lightsabers[pGetId()]:UnfuckScale()
+		if p:GetValue("ScaleUnfucked") != nil then Lightsabers[p:GetId()]:UnfuckScale() end
 	end
 	if initial then MakeDemands() end
 end
@@ -392,3 +393,11 @@ end
 
 Events:Subscribe("PostTick", ForceSheath)
 
+function InputPoll(args)
+	if not LocalPlayer:GetValue("sheated") then
+		Input:SetValue(Action.Kick, Input:GetValue(Action.FireRight))
+		Input:SetValue(Action.FireRight, 0)
+	end
+end
+
+Events:Subscribe("InputPoll", InputPoll)
