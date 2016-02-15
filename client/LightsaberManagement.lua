@@ -394,7 +394,7 @@ end
 Events:Subscribe("PostTick", ForceSheath)
 
 function InputPoll(args)
-	if not LocalPlayer:GetValue("sheated") then
+	if not LocalPlayer:GetValue("sheathed") then
 		Input:SetValue(Action.Kick, Input:GetValue(Action.FireRight))
 		Input:SetValue(Action.FireRight, 0)
 	end
