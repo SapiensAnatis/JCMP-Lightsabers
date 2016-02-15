@@ -138,6 +138,7 @@ function StartMakingDemands(p, initial, makeForLP) -- For localplayer
 			Model.Create(ModelData[pValue .. "_hilt"]),
 			sprites[pValue]
 		)
+		Lightsabers[pGetId()]:UnfuckScale()
 	end
 	if initial then MakeDemands() end
 end

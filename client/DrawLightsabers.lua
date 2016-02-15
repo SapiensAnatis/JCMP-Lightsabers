@@ -123,7 +123,13 @@ function Lightsaber:DrawFunction()
 		Render:ResetTransform()
 		self.transform:SetIdentity() -- Clear the transform so that it isn't moved cumulatively every frame
 
-		a = self.angle*Angle(0, 1.57, Camera:GetAngle().pitch/1.57+(Angle.FromVectors(self.angle * Vector3.Down, Camera:GetAngle() * Vector3.Forward)).roll)
+		a = self.angle*Angle(0, 1.57, Camera:GetAngle().pitch/1.57+(Angle.FromVectors(self.angle * Vector3.Down, Camera:GetAngle() * Vector3.Left)).roll)
+
+		b = Angle(0, 0, 0)
+		c = Angle(math.pi/2, 0, 0)
+		magic = self.angle*Angle(0, 1.57, Camera:GetAngle().pitch/1.57)
+
+
 
 
 		Render:SetTransform(Transform3():Translate(imgPos):Rotate(a):Scale(s_c))
@@ -204,6 +210,10 @@ function Lightsaber:SetLightColor(newColor)
 		self.lightColor = newColor
 		self.light:SetColor(newColor)
 	end
+end
+
+function Lightsaber:UnfuckScale()
+	s_c = Vector3(0.2, 1.05, 1)
 end
 
 function Lightsaber:Remove()

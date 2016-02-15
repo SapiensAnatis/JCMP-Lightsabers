@@ -1,7 +1,16 @@
 
 function DoDamage(args, player)
-	if Vector3.Distance(player:GetPosition(), args.entity:GetPosition()) < 2 then
-		args.entity:SetHealth(args.entity:GetHealth() - 0.05)
+	typ = args.entity.__type
+	if typ == "Player" then
+		maxDist = 1
+	elseif typ == "Vehicle" then
+		maxDist = 10
+	else
+		maxDist = 1
+	end
+
+	if Vector3.Distance(player:GetPosition(), args.entity:GetPosition()) < maxDist then
+		args.entity:SetHealth(args.entity:GetHealth() - 0.1)
 	end
 end	
 
