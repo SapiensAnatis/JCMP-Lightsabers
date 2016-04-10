@@ -101,7 +101,7 @@ end
 
 
 function ModulesLoad()
-	print("Lightsabers began on client after server gave OK")
+
 	if IsValid(LocalPlayer) then
 		pValue = LocalPlayer:GetValue("HasLightsaber") or false
 		if pValue then
@@ -180,10 +180,6 @@ function ForceSense(args)
 
 	if Lightsabers[p:GetId()] != nil then return end -- if they already have a lightsaber from a previous encounter
 
-	print("Someone is streaming in. Here's a Star Wars reference.")
-	print("SNOKE: There has been an awakening...have you felt it..?")
-	print("KYLO REN: Yes.")
-	print("SNOKE: Even you...the leader of the Knights of Ren...have never faced such a test.")
 
 	pValue = p:GetValue("Jedi") or "anakin"
 
@@ -197,7 +193,6 @@ function ForceSense(args)
 			sprites[pValue]
 		)
 
-	print("KYLO REN: It is time.")
 	else
 		RequestModelData(pValue, p)
 	end
