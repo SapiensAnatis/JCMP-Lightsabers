@@ -104,7 +104,11 @@ Events:Subscribe("PlayerJoin", PlayerJoin)
 function init()
 
 
-	local pValue = LocalPlayer:GetValue("Jedi"):lower()
+	-- I'm sorry
+	if not pcall(function() pValue = LocalPlayer:GetValue("Jedi"):lower() end) then
+		--print("Failed to retrieve player value. Defaulting to Anakin's lightsaber.")
+		pValue = "anakin"
+	end
 
 	local model = Model.Create(ModelData[pValue])
 	model:SetTopology(Topology.TriangleList)
