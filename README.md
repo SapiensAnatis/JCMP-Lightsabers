@@ -10,9 +10,9 @@ A simple raycasting call determines whether your lightsaber is about to cut some
 
 # Screenshots
 
-http://i.imgur.com/EeyBSt6l.jpg
-http://i.imgur.com/vnelAlrl.jpg
-http://i.imgur.com/3EkZGTYl.jpg
+- http://i.imgur.com/EeyBSt6l.jpg
+- http://i.imgur.com/vnelAlrl.jpg
+- http://i.imgur.com/3EkZGTYl.jpg
 
 # For scripters/server owners:
 
@@ -26,9 +26,7 @@ For scripters who want to extend the script:
 
 The script uses a class system to make a lightsaber an object, which has members including position, bound player, angle, hilt and blade model, etc. You can 'construct' a lightsaber like so:
 
-Code: [Select]
-
-Lightsaber(model, lightColor, modelname, player, hilt, bone, bone_s, position, position_s, angle, angle_s)
+`Lightsaber(model, lightColor, modelname, player, hilt, bone, bone_s, position, position_s, angle, angle_s)`
 
 
 The properties, in order, are as follows. Bold denotes a required argument.:
@@ -64,4 +62,4 @@ The class contains a number of methods:
 # Known issues:
 
 -    Some people may experience high loading times for the models if they are far away from the server and/or their internet connection is sub-optimal.
--   The light sprite can look a bit dodgy from certain camera angles. I might use some better trig to fix that at some point.
+-   The light sprite can look a bit dodgy from certain camera angles. I might use some better trig to fix that at some point. A lack of understanding of how the camera angles in the modding API worked as well as the maths behind it lead to this problem.
